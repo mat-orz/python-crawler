@@ -73,21 +73,34 @@ def get_site_information(url):
     page_content = get_page_content(url)
 
     # Getting all unique urls from page_content based on xpath TODO: could be done better, calling the same function in the same way - leaving for clarity
-    links = get_elements_by_xpath(page_content, xpaths_list, 'links')
+    child_links = get_elements_by_xpath(page_content, xpaths_list, 'links')
     images = get_elements_by_xpath(page_content, xpaths_list, 'images')
     css = get_elements_by_xpath(page_content, xpaths_list, 'css')
     js = get_elements_by_xpath(page_content, xpaths_list, 'js')
 
-    #Grabbing protocol and domain info.
+    # Grabbing protocol and domain info.
     protocol_domain =  get_protocol_and_domain(url)
 
+    # Checking domain of all child links and setting is_local
+    child_urls = []
+
+    for child_link in child_links:
+        child_urls.append({'url' : child_link, 
+                        'is_local': is_local_link(child_link, protocol_domain['domain'])}
+                        )
+
+
+
+    
+
     return {'url': url, 
-            'links': links, 
+            'child_urls': child_urls, 
             'images': images, 
             'css': css, 
             'js': js,
             'protocol': protocol_domain['protocol'],
-            'domain': protocol_domain['domain']}
+            'domain': protocol_domain['domain'],
+            'is_local': True}
 
 
 
@@ -105,8 +118,7 @@ url = 'https://wiprodigital.com'
 protocol_domain_main_url = get_protocol_and_domain(url)
 
 local_urls_to_crawl = [url]
-external_urls = {}
-visited_sites = {}
+visited_sites = []
 
 while len(local_urls_to_crawl) > 0:
     for to_crawl in local_urls_to_crawl:
@@ -116,8 +128,12 @@ while len(local_urls_to_crawl) > 0:
         else:
             # Grab all info from this site
             site_data = get_site_information(url)
-
             pprint.pprint(site_data)
+            # Add to visited site to avoid child elements to be iterated infinitely
+            visited_sites.append(site_data)
+            # Iterate through all links found on the page
+            #for child_to_crawl in site_data['links']:
+                
             local_urls_to_crawl.remove(to_crawl)
 
 
