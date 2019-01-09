@@ -1,6 +1,7 @@
 from lxml import html, etree
 from urllib.parse import urlparse
 import requests
+import pprint
 
 
 
@@ -15,7 +16,7 @@ def get_protocol_and_domain(url):
     return result
 
 
-def external_link(url, domain_main_site):
+def is_local_link(url, domain_main_site):
     # Checks if url is local or external
 
     prot_domain =  get_protocol_and_domain(url)
@@ -24,13 +25,13 @@ def external_link(url, domain_main_site):
 
     if url_domain == domain_main_site:
         # Same domain, url is local
-        return False
+        return True
     elif protocol_url:
         # Different domain and has protocol, url is external
-        return True
+        return False
     else:
         # No protocol, url is relative local
-        return False
+        return True
 
 def get_page_content(url):
     # Return page source code given url
@@ -65,6 +66,31 @@ def get_elements_by_xpath(page_content, xpaths_list, xpath_name):
     # Executes xpath expression based on name provided on page content. After getting all urls calls function to remove duplicates.
     return get_unique_list_of_urls(page_content.xpath(xpaths_list[xpath_name]))
 
+def get_site_information(url):
+    # Returns prepared object with all urls and their type
+
+    # Grabbing domain name and protocol from the url and executing connection to get source code
+    page_content = get_page_content(url)
+
+    # Getting all unique urls from page_content based on xpath TODO: could be done better, calling the same function in the same way - leaving for clarity
+    links = get_elements_by_xpath(page_content, xpaths_list, 'links')
+    images = get_elements_by_xpath(page_content, xpaths_list, 'images')
+    css = get_elements_by_xpath(page_content, xpaths_list, 'css')
+    js = get_elements_by_xpath(page_content, xpaths_list, 'js')
+
+    #Grabbing protocol and domain info.
+    protocol_domain =  get_protocol_and_domain(url)
+
+    return {'url': url, 
+            'links': links, 
+            'images': images, 
+            'css': css, 
+            'js': js,
+            'protocol': protocol_domain['protocol'],
+            'domain': protocol_domain['domain']}
+
+
+
 
 # TODO: Could be stored in a config file instead
 xpaths_list = {'links': '//a/@href', 
@@ -75,22 +101,23 @@ xpaths_list = {'links': '//a/@href',
 # TODO: Add as parameter
 url = 'https://wiprodigital.com'
 
-# Grabbing domain name and protocol from the url and executing connection to get source code
+# Grabbing main site protocol and domain
 protocol_domain_main_url = get_protocol_and_domain(url)
-page_content = get_page_content(url)
 
-# Getting all unique urls from page_content based on xpath TODO: could be done better, calling the same function in the same way - leaving for clarity
-links = get_elements_by_xpath(page_content, xpaths_list, 'links')
-images = get_elements_by_xpath(page_content, xpaths_list, 'images')
-css = get_elements_by_xpath(page_content, xpaths_list, 'css')
-js = get_elements_by_xpath(page_content, xpaths_list, 'js')
+local_urls_to_crawl = [url]
+external_urls = {}
+visited_sites = {}
 
+while len(local_urls_to_crawl) > 0:
+    for to_crawl in local_urls_to_crawl:
+        if to_crawl in visited_sites:
+            # Seen this site, remove from to crawl
+            local_urls_to_crawl.remove(to_crawl)
+        else:
+            # Grab all info from this site
+            site_data = get_site_information(url)
 
-for link in links:
-    protocol_domain = get_protocol_and_domain(link) 
-    print('url: ' + link)
-    print('protocol: ' + protocol_domain['protocol'] + ' domain: ' + protocol_domain['domain'] + ' external?: ' + str(external_link(link, protocol_domain_main_url['domain'])))
-    
-
+            pprint.pprint(site_data)
+            local_urls_to_crawl.remove(to_crawl)
 
 
