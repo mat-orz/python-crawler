@@ -33,14 +33,13 @@ def external_link(url, domain_main_site):
         return False
 
 def get_page_content(url):
-    #Return page source code given url
+    # Return page source code given url
     response = requests.get(url)
     return html.fromstring(response.content)
 
 def clean_url(url):
-    #Sanitize url
-    print('pre: ' + url)
-    if url:
+    # Sanitize url
+    if len(url) > 0:
         if url[0] == '#':
             url = '/'
 
@@ -49,40 +48,45 @@ def clean_url(url):
 
         if url[-1] == '/':
             url = url[0:-1]
-    print('post: ' + url)
     return url
 
 def get_unique_list_of_urls(urls):
-    #Cleans and adds links to a set to remove any duplicate value
+    # Cleans and adds links to a set to remove any duplicate value
     unique_urls = set()
     
     for url in urls:
         url = clean_url(url)
-        if url and url != '/' and url != '':
+        if len(url) > 0 and url != '/' and url != '':
             unique_urls.add(url)
 
     return unique_urls
 
+def get_elements_by_xpath(page_content, xpaths_list, xpath_name):
+    # Executes xpath expression based on name provided on page content. After getting all urls calls function to remove duplicates.
+    return get_unique_list_of_urls(page_content.xpath(xpaths_list[xpath_name]))
 
 
-xpaths_list = {'urls': '//a/@href', 
+# TODO: Could be stored in a config file instead
+xpaths_list = {'links': '//a/@href', 
           'images': '//img/@src',
-          'css': ''}
+          'css': "//link[@type='text/css']/@href",
+          'js': "//script[@type='text/javascript']/@src"}
 
 # TODO: Add as parameter
 url = 'https://wiprodigital.com'
+
+# Grabbing domain name and protocol from the url and executing connection to get source code
 protocol_domain_main_url = get_protocol_and_domain(url)
-
-
 page_content = get_page_content(url)
 
+# Getting all unique urls from page_content based on xpath TODO: could be done better, calling the same function in the same way - leaving for clarity
+links = get_elements_by_xpath(page_content, xpaths_list, 'links')
+images = get_elements_by_xpath(page_content, xpaths_list, 'images')
+css = get_elements_by_xpath(page_content, xpaths_list, 'css')
+js = get_elements_by_xpath(page_content, xpaths_list, 'js')
 
-links = page_content.xpath(xpaths_list['urls'])
-images = page_content.xpath(xpaths_list['images'])
 
-clean_unique_links = get_unique_list_of_urls(links)
-
-for link in clean_unique_links:
+for link in links:
     protocol_domain = get_protocol_and_domain(link) 
     print('url: ' + link)
     print('protocol: ' + protocol_domain['protocol'] + ' domain: ' + protocol_domain['domain'] + ' external?: ' + str(external_link(link, protocol_domain_main_url['domain'])))
