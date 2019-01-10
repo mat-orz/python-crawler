@@ -1,9 +1,10 @@
-from lxml import html, etree
 from urllib.parse import urlparse
 import requests
 import pprint
 import json
 from operator import itemgetter
+import sys
+from lxml import html
 
 def get_protocol_and_domain(url):
     # Returns protocol and domain values of url
@@ -115,12 +116,11 @@ xpaths_list = {'links': '//a/@href',
 print('Using following xpath expressions:')
 pprint.pprint(xpaths_list)
 
-# TODO: Add as parameters
-url = 'https://wiprodigital.com'
-#url = 'http://pegaworld.wiprodigital.com/events/pega-customer-engagement-summit-2018/'
-output_filename = 'result.json'
+# TODO: Add some control logic
+url = sys.argv[1]
+output_filename = "./output/" + sys.argv[2]
 
-# Debug
+# Debug TODO: Add as parameters
 execs = 0
 execs_limit = 2
 debug_flag = False
@@ -133,8 +133,6 @@ local_urls_to_crawl = [url]
 visited_sites = []
 visited_sites_urls = []
 external_sites = []
-
-
 
 # TODO: Could be done as a recursive function
 while len(local_urls_to_crawl) > 0:
