@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 import requests
 import pprint
 import json
-
+from operator import itemgetter
 
 def get_protocol_and_domain(url):
     # Returns protocol and domain values of url
@@ -14,7 +14,6 @@ def get_protocol_and_domain(url):
         result.update(protocol = url_parsed.scheme, domain = url_parsed.netloc)
 
     return result
-
 
 def is_local_link(url, domain_main_site):
     # Checks if url is local or external
@@ -49,7 +48,8 @@ def clean_url(url):
 
         if url[-1] == '/':
             url = url[0:-1]
-    return url
+
+    return url.strip()
 
 def get_unique_list_of_urls(urls):
     # Cleans and adds links to a set to remove any duplicate value
@@ -104,6 +104,8 @@ def get_site_information(url):
             'is_local': True}
 
 
+
+
 # TODO: Could be stored in a config file instead
 xpaths_list = {'links': '//a/@href', 
           'images': '//img/@src',
@@ -115,7 +117,13 @@ pprint.pprint(xpaths_list)
 
 # TODO: Add as parameters
 url = 'https://wiprodigital.com'
+#url = 'http://pegaworld.wiprodigital.com/events/pega-customer-engagement-summit-2018/'
 output_filename = 'result.json'
+
+# Debug
+execs = 0
+execs_limit = 2
+debug_flag = False
 
 # Grabbing main site protocol and domain
 protocol_domain_main_url = get_protocol_and_domain(url)
@@ -126,15 +134,16 @@ visited_sites = []
 visited_sites_urls = []
 external_sites = []
 
+
+
 # TODO: Could be done as a recursive function
 while len(local_urls_to_crawl) > 0:
     for to_crawl in local_urls_to_crawl:
         if to_crawl not in visited_sites_urls:
             # Grab all info from this site
-            
+
             print('Gathering data from: ' + to_crawl)
             site_data = get_site_information(to_crawl)
-            visited_sites.append(site_data)
 
             # Add to visited site to avoid child elements to be iterated infinitely
             visited_sites_urls.append(to_crawl)
@@ -150,15 +159,32 @@ while len(local_urls_to_crawl) > 0:
                 elif child_to_crawl['is_local'] and child_url not in local_urls_to_crawl and child_url not in visited_sites_urls:
                     # Adding to to_crawl because it's local
                     local_urls_to_crawl.append(child_url)
+            
+            # Debug
+            if debug_flag:
+                pprint.pprint(site_data)
+                execs = execs + 1
+            # Appending all info to visited_sites, removing child urls so it's more readable in the final form
+            del site_data['child_urls']
+            visited_sites.append(site_data)
                     
         # Finished setting up all the childs, can remove from the queue
         local_urls_to_crawl.remove(to_crawl)
-        
+
+        # Debug
+        if execs >= execs_limit:
+            local_urls_to_crawl = []
+            break
+
+# Sorting to make a pseudo json sitemap
+visited_sites = sorted(visited_sites, key=itemgetter('url'))
+external_sites = sorted(external_sites)
+
 # Preparing final object
 final_result = {'local_sites': visited_sites, 'external_sites': external_sites}
 
 with open(output_filename, 'w') as outfile:
-    json.dump(final_result, outfile)
+    json.dump(final_result, outfile, sort_keys=True, indent=4)
 
 print('Crawled over ' + str(len(visited_sites)) + ' local sites and detected ' + str(len(external_sites)) + ' external links')
 print('Full results with other static resources listed are stored as json file: ' + output_filename)
