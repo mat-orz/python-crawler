@@ -106,7 +106,7 @@ def test_xpaths(crawler):
     pprint.pprint(list_js)
 
     # Assuming x.js and xy.js got pulled
-    assertion1 = len(list_js) == 2 and list_js[0] == 'x.js' and list_js[1] == 'y.js'
+    assertion1 = len(list_js) == 2 and list_js[0] == 'x.js' and list_js[1] == 'xy.js'
 
     # Running xpath on css objects
     css_mock = '<link rel="stylesheet" id="wipro-style-css"  href="https://x.css" type="text/css" media="all" /><link rel="stylesheet" id="wipro-style-css"  href="y.css" type="text/css" media="all" />'
@@ -117,24 +117,22 @@ def test_xpaths(crawler):
     assertion2 = len(list_css) == 2 and list_css[0] == 'https://x.css' and list_css[1] == 'y.css'
 
     # Running xpath on url objects
-    url_mock = '<li><a class="canavelem insCNavElem" data-toggle="tab" href="#InscontntAggr">Insights</a></li><a id="allcaItem4" class="caItem allcaItem allcaItem4 CAStandard" href="https://x.com" target="_self">'
+    url_mock = '<a id="allcaItem4" class="caItem allcaItem allcaItem4 CAStandard" href="https://x.com"> <a id="allcaItem4" class="caItem allcaItem allcaItem4 CAStandard" href="https://y.com">'
     list_links = crawler.get_elements_by_xpath(html.fromstring(url_mock), crawler.xpaths_list, 'links')
     pprint.pprint(list_links)
 
-    # Assuming #InscontntAggr and https://x.com got pulled
-    assertion3 = len(list_links) == 2 and list_css[0] == 'https://x.css' and list_css[1] == 'https://x.com'
+    # Assuming https://x.com and https://y.com got pulled
+    assertion3 = len(list_links) == 2 and list_links[0] == 'https://x.com' and list_links[1] == 'https://y.com'
 
     # Running xpath on images objects
-    url_mock = '<a id="allcaItem4" class="caItem allcaItem allcaItem4 CAStandard" href="#InscontntAggr">'
-    list_links = crawler.get_elements_by_xpath(html.fromstring(url_mock), crawler.xpaths_list, 'links')
-    pprint.pprint(list_links)
+    images_mock = '<img class="wd-navlogo-digital" src="https://x.com/logo.png" alt="wipro digital"><img class="wd-navlogo-digital" src="https://y.com/logo.png" alt="wipro digital">'
+    list_images = crawler.get_elements_by_xpath(html.fromstring(images_mock), crawler.xpaths_list, 'images')
+    pprint.pprint(list_images)
 
-    # Assuming #InscontntAggr and https://x.com got pulled
-    assertion3 = len(list_links) == 2 and list_css[0] == '#InscontntAggr' and list_css[1] == 'https://x.com'
+    # Assuming https://x.com/logo.png and https://y.com/logo.png got pulled
+    assertion4 = len(list_links) == 2 and list_images[0] == 'https://x.com/logo.png' and list_images[1] == 'https://y.com/logo.png'
 
-    
-
-    assert assertion1 and assertion2 and assertion3
+    assert assertion1 and assertion2 and assertion3 and assertion4
 
 
 ## Testing get_page_content
