@@ -25,11 +25,12 @@ chmod +x run_as_docker_image.sh
 ./run_as_docker_image.sh
 ```
 
-You can modify run_as_docker_image.sh variables to have different image name, url or final output name:
+You can modify run_as_docker_image.sh variables to have different image name, url or final output name. Remove $TEST_BEFORE reference to have it run without tests
 ```
 IMAGE_NAME="python-crawler-mat-orz"
 URL="https://wiprodigital.com"
 OUT_FILE="sitemap.json"
+TEST_BEFORE="Y"
 ```
 
 Python 3 (virtualenv)
@@ -40,9 +41,15 @@ python -m venv python-crawler/
 source python-crawler/bin/activate
 cd python-crawler
 pip install -r requirements.txt
-python main.py "https://wiprodigital.com/" "<some_name>"
+python main.py "https://wiprodigital.com/" "<some_name>" "<optional string to launch tests>"
 ```
 
+## Tests
+
+To run the tests manually (in working directory)
+```
+pytest
+```
 
 ## Output
 
@@ -57,11 +64,10 @@ The final json will be stored in the output/<some_name>
 
 ## Things to do with more time
 
-- Unit tests.
+- Better unit tests, refactor of execute() function to make tests more granular.
 - Catching possible exceptions.
 - Better argument parser (debug and test variables) and config file (mainly for xpaths).
 - Don't like the main logic of the crawler, could be done as a recursive function.
 - More robust xpaths to cover all cases so it can be used on other sites as well.
 - More human readable sitemap, possibly as a graph (graphviz?).
 - Fix TODOs from the source code comments
-
