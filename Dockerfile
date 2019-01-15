@@ -1,6 +1,8 @@
 FROM python:3
 
-ADD main.py requirements.txt ./
+WORKDIR /python-crawler/
+
+ADD main.py requirements.txt test_crawler.py python_crawler.py ./
 
 RUN pip install -r requirements.txt
 
