@@ -64,6 +64,33 @@ def test_url_sanitizer(crawler):
 
     assert assertion1 and assertion2 and assertion3 and assertion4
 
+## Testing unique lists
+
+def test_unique_list(crawler):
+    
+    # Adding all cases
+    mock_urls = {
+        'test.com',     # Assume added as first
+        '#test',        # Assume ignored
+        'test.com/1',   # Assume added as second
+        '',             # Assume ignored
+        '/'             # Assume ignored
+    }
+
+    # Expected result
+    to_compare = ['test.com', 'test.com/1']
+
+    # Creating unique list
+    cleaned_list = crawler.get_unique_list_of_urls(mock_urls)
+    pprint.pprint(cleaned_list)
+
+    # Checking if values are the same
+    same_values = True
+    for index, value in enumerate(cleaned_list):
+        if value != to_compare[index]:
+            same_values = False  
+    
+    assert len(cleaned_list) == len(to_compare) and same_values
 
 ## Testing get_page_content
 
