@@ -7,7 +7,7 @@ from unittest.mock import Mock
 from requests.models import Response
 from lxml import html
 
-# Creates crawler instance as fixture for pytest
+## Creates crawler instance as fixture for pytest
 
 @pytest.fixture
 def crawler():
@@ -155,3 +155,9 @@ def test_chosen_url_connection(crawler):
         assert True
     except:
         assert False
+
+## Testing final execute
+
+## TODO: Refactor execute(self) and test granulary all cases
+
+

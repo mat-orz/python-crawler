@@ -28,9 +28,7 @@ class PythonCrawler(object):
         # Debug TODO: Add as parameters
         self.execs = 0
         self.execs_limit = 2
-        self.debug_flag = True
-
-
+        self.debug_flag = False
 
     def get_protocol_and_domain(self, url):
         # Returns protocol and domain values of url
@@ -91,7 +89,7 @@ class PythonCrawler(object):
 
         # Converting back to list so it can be serializied to json
         if unique_urls:
-            return list(unique_urls)
+            return sorted(list(unique_urls))
         else:
             return []
 
@@ -131,6 +129,12 @@ class PythonCrawler(object):
                 'is_local': True}
 
 
+    def local_get(self, url):
+        p_url = urlparse(url)
+        filename = url2pathname(p_url.path)
+        return open(filename, 'rb')
+
+    # TODO: Split into smaller pieced to test each part individually
     def execute(self):
 
         print('Using following xpath expressions:')
@@ -139,13 +143,12 @@ class PythonCrawler(object):
         # Grabbing main site protocol and domain
         protocol_domain_main_url = self.get_protocol_and_domain(self.url)
 
-
         # TODO: Could be done as a recursive function
         while len(self.local_urls_to_crawl) > 0:
             for to_crawl in self.local_urls_to_crawl:
                 if to_crawl not in self.visited_sites_urls:
-                    # Grab all info from this site
 
+                    # Grab all info from this site
                     print('Gathering data from: ' + to_crawl)
                     site_data = self.get_site_information(to_crawl)
 
