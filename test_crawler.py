@@ -47,6 +47,22 @@ def test_domain_protocol_local_external_logic(crawler):
 
     assert assertion1 and assertion2 and assertion3 and assertion4
 
+## Testing url sanitizer
+
+def test_url_sanitizer(crawler):
+    
+    # TODO: Add more tests with spaces
+    trailing_slash = 'test/'
+    contains_hash = 'test#page'
+    starts_with_hash = '#test'
+    with_spaces = '  ' + trailing_slash
+
+    assertion1 = crawler.clean_url(trailing_slash) == 'test'
+    assertion2 = crawler.clean_url(contains_hash) == 'test'
+    assertion3 = crawler.clean_url(starts_with_hash) == ''
+    assertion4 = crawler.clean_url(with_spaces) == 'test'
+
+    assert assertion1 and assertion2 and assertion3 and assertion4
 
 
 ## Testing get_page_content
