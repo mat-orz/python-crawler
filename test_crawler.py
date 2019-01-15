@@ -3,16 +3,20 @@ import python_crawler
 import pytest
 import requests
 import pprint
+from unittest.mock import Mock
+from requests.models import Response
+from lxml import html
 
+# Creates crawler instance as fixture for pytest
 
 @pytest.fixture
 def crawler():
-    # Returns crawler instance as fixture for pytest
     # TODO: Add some control logic & add as parameters
     url = 'https://wiprodigital.com/'
     output_filename = 'output/sitemap-test.json'
     print('Creating crawler instance. url: ' + url + ' output: '+ output_filename)
     return python_crawler.PythonCrawler(url, output_filename)
+
 
 ## Testing get_protocol_and_domain and is_local_link functions
 
@@ -92,6 +96,47 @@ def test_unique_list(crawler):
     
     assert len(cleaned_list) == len(to_compare) and same_values
 
+## Testing xpaths TODO: Make a local mock site
+
+def test_xpaths(crawler):
+
+    # Running xpath on js objects
+    js_mock = '<script type="text/javascript" src="x.js"></script><s><script type="text/javascript" src="xy.js"></s>'
+    list_js = crawler.get_elements_by_xpath(html.fromstring(js_mock), crawler.xpaths_list, 'js')
+    pprint.pprint(list_js)
+
+    # Assuming x.js and xy.js got pulled
+    assertion1 = len(list_js) == 2 and list_js[0] == 'x.js' and list_js[1] == 'y.js'
+
+    # Running xpath on css objects
+    css_mock = '<link rel="stylesheet" id="wipro-style-css"  href="https://x.css" type="text/css" media="all" /><link rel="stylesheet" id="wipro-style-css"  href="y.css" type="text/css" media="all" />'
+    list_css = crawler.get_elements_by_xpath(html.fromstring(css_mock), crawler.xpaths_list, 'css')
+    pprint.pprint(list_css)
+
+    # Assuming https://x.css and y.css got pulled
+    assertion2 = len(list_css) == 2 and list_css[0] == 'https://x.css' and list_css[1] == 'y.css'
+
+    # Running xpath on url objects
+    url_mock = '<li><a class="canavelem insCNavElem" data-toggle="tab" href="#InscontntAggr">Insights</a></li><a id="allcaItem4" class="caItem allcaItem allcaItem4 CAStandard" href="https://x.com" target="_self">'
+    list_links = crawler.get_elements_by_xpath(html.fromstring(url_mock), crawler.xpaths_list, 'links')
+    pprint.pprint(list_links)
+
+    # Assuming #InscontntAggr and https://x.com got pulled
+    assertion3 = len(list_links) == 2 and list_css[0] == 'https://x.css' and list_css[1] == 'https://x.com'
+
+    # Running xpath on images objects
+    url_mock = '<a id="allcaItem4" class="caItem allcaItem allcaItem4 CAStandard" href="#InscontntAggr">'
+    list_links = crawler.get_elements_by_xpath(html.fromstring(url_mock), crawler.xpaths_list, 'links')
+    pprint.pprint(list_links)
+
+    # Assuming #InscontntAggr and https://x.com got pulled
+    assertion3 = len(list_links) == 2 and list_css[0] == '#InscontntAggr' and list_css[1] == 'https://x.com'
+
+    
+
+    assert assertion1 and assertion2 and assertion3
+
+
 ## Testing get_page_content
 
 def test_local_url_connection(crawler):
@@ -112,5 +157,3 @@ def test_chosen_url_connection(crawler):
         assert True
     except:
         assert False
-
-
